@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="shoppingCartApp">
+<head>
+  <meta charset="UTF-8">
+  <title>Shopping Cart</title>
+  <!-- Add AngularJS and Bootstrap CDN -->
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
+  <!-- Bootstrap CSS and optional theme -->
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <!-- Custom CSS -->
+  <style>
+    body {
+      background-color: #f5f5f5;
+    }
+
+    .product-card {
+      border: none;
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 20px;
+      background-color: #fff;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      transition: transform 0.2s;
+    }
+
+    .product-card:hover {
+      transform: scale(1.02);
+    }
+
+    .product-image {
+      height: 200px;
+      object-fit: cover;
+      border-radius: 5px;
+    }
+
+    .cart-summary {
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    .cart-item {
+      border-bottom: 1px solid #e0e0e0;
+      padding-bottom: 10px;
+      margin-bottom: 10px;
+    }
+
+    .cart-item:last-child {
+      border-bottom: none;
+    }
+
+    .btn-remove {
+      color: #dc3545;
+      cursor: pointer;
+    }
+
+    .btn-remove:hover {
+      text-decoration: underline;
+    }
+
+    .total-price {
+      font-size: 1.5em;
+      font-weight: bold;
+    }
+
+    .nav-bar {
+      background-color: #343a40;
+      padding: 10px;
+    }
+
+    .nav-bar h1 {
+      color: #fff;
+      margin: 0;
+    }
+  </style>
+</head>
+<body ng-controller="CartController">
+
+  <!-- Navigation Bar -->
+  <nav class="nav-bar">
+    <div class="container">
+      <h1>My Online Store</h1>
+    </div>
+  </nav>
+
+  <div class="container my-5">
+    <div class="row">
+      <!-- Product List -->
+      <div class="col-md-8">
+        <div class="row">
+          <div class="col-md-6" ng-repeat="product in products">
+            <div class="product-card">
+              <img ng-src="{{product.image}}" alt="{{product.name}}" class="img-fluid product-image mb-3">
+              <h5>{{product.name}}</h5>
+              <p>Price: {{product.price | currency}}</p>
+              <p>Available Quantity: {{product.availableQuantity}}</p>
+              <button class="btn btn-primary" ng-click="addToCart(product)" ng-disabled="product.availableQuantity <= 0">Add to Cart</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Cart Section -->
+      <div class="col-md-4">
+        <h3>Your Cart</h3>
+        <div class="cart-summary" ng-show="cart.length > 0">
+          <div class="cart-item" ng-repeat="item in cart">
+            <p>
+              <strong>{{item.name}}</strong> ({{item.quantity}}) - {{item.price * item.quantity | currency}}
+              <span class="btn-remove float-right" ng-click="removeFromCart(item)">Remove</span>
+            </p>
+          </div>
+          <hr>
+          <p class="total-price">Total: {{getTotalPrice() | currency}}</p>
+        </div>
+        <p ng-show="cart.length == 0">Your cart is empty</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- AngularJS Script -->
+  <script>
+    var app = angular.module('shoppingCartApp', []);
+
+    app.controller('CartController', function($scope) {
+      // Sample product data with actual images
+      $scope.products = [
+        {
+          id: 1,
+          name: 'Wireless Headphones',
+          price: 99.99,
+          availableQuantity: 15,
+          image: 'https://plus.unsplash.com/premium_photo-1678099940967-73fe30680949?q=80&w=2960&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'
+        },
+        {
+          id: 2,
+          name: 'Smart Watch',
+          price: 199.99,
+          availableQuantity: 10,
+          image: 'https://images.unsplash.com/photo-1461141346587-763ab02bced9?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NHx8c21hcnQlMjB3YXRjaHxlbnwwfHwwfHx8MA%3D%3D'
+        },
+        {
+          id: 3,
+          name: 'Digital Camera',
+          price: 249.99,
+          availableQuantity: 8,
+          image: 'https://images.unsplash.com/photo-1526413494904-7a15c807b00e?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTJ8fGRpZ2l0YWwlMjBjYW1lcmF8ZW58MHx8MHx8fDA%3D'
+        },
+        {
+          id: 4,
+          name: 'Gaming Mouse',
+          price: 49.99,
+          availableQuantity: 20,
+          image: 'https://images.unsplash.com/photo-1588440573874-54185a266452?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8OHx8Z2FtaW5nJTIwbW91c2V8ZW58MHx8MHx8fDA%3D'
+        },
+        {
+          id: 5,
+          name: 'Laptop',
+          price: 899.99,
+          availableQuantity: 5,
+          image: 'https://plus.unsplash.com/premium_photo-1681666713728-9ed75e148617?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8bWFjYm9va3xlbnwwfHwwfHx8MA%3D%3D'
+        },
+        {
+          id: 6,
+          name: 'Bluetooth Speaker',
+          price: 59.99,
+          availableQuantity: 12,
+          image: 'https://images.unsplash.com/photo-1621266034770-74d35534f9ae?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTV8fGJsdWV0b290aCUyMHNwZWFrZXJ8ZW58MHx8MHx8fDA%3D'
+        }
+      ];
+
+      $scope.cart = [];
+
+      // Add product to the cart
+      $scope.addToCart = function(product) {
+        let found = false;
+        // Check if product already exists in the cart
+        $scope.cart.forEach(function(item) {
+          if (item.id === product.id) {
+            item.quantity++;
+            found = true;
+          }
+        });
+        if (!found) {
+          $scope.cart.push({ ...product, quantity: 1 });
+        }
+        product.availableQuantity--; // Decrease available quantity
+      };
+
+      // Remove product from the cart
+      $scope.removeFromCart = function(item) {
+        let index = $scope.cart.indexOf(item);
+        if (index !== -1) {
+          // Return the quantity to available quantity
+          $scope.products.forEach(function(product) {
+            if (product.id === item.id) {
+              product.availableQuantity += item.quantity;
+            }
+          });
+          $scope.cart.splice(index, 1);
+        }
+      };
+
+      // Calculate total price of the cart
+      $scope.getTotalPrice = function() {
+        return $scope.cart.reduce(function(total, item) {
+          return total + (item.price * item.quantity);
+        }, 0);
+      };
+    });
+  </script>
+</body>
+</html>
