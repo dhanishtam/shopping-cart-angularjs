@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="shoppingCartApp">
+<head>
+  <meta charset="UTF-8">
+  <title>Shopping Cart</title>
+  <!-- AngularJS and Bootstrap CDN -->
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
+  <!-- Bootstrap CSS -->
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+  <!-- Custom CSS -->
+  <style>
+    body {
+      background-color: #f8f9fa;
+      font-family: 'Open Sans', sans-serif;
+    }
+
+    /* Navigation Bar */
+    .navbar {
+      background-color: #343a40;
+    }
+
+    .navbar-brand, .navbar-nav .nav-link {
+      color: #fff;
+    }
+
+    .navbar-brand:hover, .navbar-nav .nav-link:hover {
+      color: #ffc107;
+    }
+
+    /* Product Card */
+    .card {
+      margin-bottom: 20px;
+      transition: transform 0.2s;
+      border: none;
+      border-radius: 10px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    .card:hover {
+      transform: scale(1.02);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+    }
+
+    .card-img-top {
+      height: 200px;
+      object-fit: cover;
+      border-top-left-radius: 10px;
+      border-top-right-radius: 10px;
+    }
+
+    .card-title {
+      font-size: 1.1rem;
+      font-weight: 600;
+    }
+
+    .btn-add {
+      background-color: #28a745;
+      color: #fff;
+    }
+
+    .btn-add:hover {
+      background-color: #218838;
+      color: #fff;
+    }
+
+    /* Cart Section */
+    .cart-summary {
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      position: sticky;
+      top: 20px;
+    }
+
+    .cart-table th, .cart-table td {
+      vertical-align: middle;
+    }
+
+    .btn-remove {
+      color: #dc3545;
+      cursor: pointer;
+    }
+
+    .btn-remove:hover {
+      color: #c82333;
+    }
+
+    .total-price {
+      font-size: 1.25rem;
+      font-weight: bold;
+    }
+
+    /* Footer */
+    footer {
+      background-color: #343a40;
+      color: #fff;
+      padding: 20px 0;
+      margin-top: 40px;
+    }
+
+    footer a {
+      color: #ffc107;
+    }
+  </style>
+</head>
+<body ng-controller="CartController">
+
+  <!-- Navigation Bar -->
+  <nav class="navbar navbar-expand-lg navbar-dark">
+    <div class="container">
+      <a class="navbar-brand" href="#">My Online Store</a>
+      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" 
+        aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <!-- Optional Navigation Links -->
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav ml-auto">
+          <!-- Add navigation links here if needed -->
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container my-5">
+    <div class="row">
+      <!-- Product List -->
+      <div class="col-lg-8">
+        <div class="row">
+          <div class="col-md-6" ng-repeat="product in products">
+            <div class="card">
+              <img ng-src="{{product.image}}" alt="{{product.name}}" class="card-img-top">
+              <div class="card-body">
+                <h5 class="card-title">{{product.name}}</h5>
+                <p class="card-text text-muted">{{product.description}}</p>
+                <p class="card-text">
+                  <strong>{{product.price | currency}}</strong>
+                </p>
+                <p class="card-text">
+                  <small class="text-muted">Available: {{product.availableQuantity}}</small>
+                </p>
+                <button class="btn btn-add btn-block" ng-click="addToCart(product)" ng-disabled="product.availableQuantity <= 0">
+                  Add to Cart
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Cart Section -->
+      <div class="col-lg-4">
+        <h3>Your Cart</h3>
+        <div class="cart-summary" ng-show="cart.length > 0">
+          <table class="table cart-table">
+            <thead>
+              <tr>
+                <th>Product</th>
+                <th>Qty</th>
+                <th>Price</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr ng-repeat="item in cart">
+                <td>{{item.name}}</td>
+                <td>{{item.quantity}}</td>
+                <td>{{item.price * item.quantity | currency}}</td>
+                <td>
+                  <button class="btn btn-sm btn-outline-danger" ng-click="removeFromCart(item)">
+                    &times;
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <hr>
+          <p class="text-right total-price">Total: {{getTotalPrice() | currency}}</p>
+          <!-- Proceed to checkout button -->
+          <button class="btn btn-primary btn-block">Proceed to Checkout</button>
+        </div>
+        <p ng-show="cart.length == 0">Your cart is empty</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer>
+    <div class="container text-center">
+      <p>&copy; 2023 My Online Store. All rights reserved.</p>
+      <p>
+        <a href="#">Privacy Policy</a> | <a href="#">Terms of Service</a>
+      </p>
+    </div>
+  </footer>
+
+  <!-- JavaScript (Bootstrap JS and dependencies) -->
+  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+  <!-- Popper.js -->
+  <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+  <!-- Bootstrap JS -->
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+  <!-- AngularJS Script -->
+  <script>
+    var app = angular.module('shoppingCartApp', []);
+
+    app.controller('CartController', function($scope) {
+      // Sample product data with actual images and descriptions
+      $scope.products = [
+        {
+          id: 1,
+          name: 'Wireless Headphones',
+          description: 'Experience high-quality sound without the wires.',
+          price: 99.99,
+          availableQuantity: 15,
+          image: 'https://plus.unsplash.com/premium_photo-1678099940967-73fe30680949?q=80&w=2960&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'
+        },
+        {
+          id: 2,
+          name: 'Smart Watch',
+          description: 'Stay connected on the go with this stylish smart watch.',
+          price: 199.99,
+          availableQuantity: 10,
+          image: 'https://images.unsplash.com/photo-1461141346587-763ab02bced9?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NHx8c21hcnQlMjB3YXRjaHxlbnwwfHwwfHx8MA%3D%3D'
+        },
+        {
+          id: 3,
+          name: 'Digital Camera',
+          description: 'Capture your moments with crystal clear quality.',
+          price: 249.99,
+          availableQuantity: 8,
+          image: 'https://images.unsplash.com/photo-1526413494904-7a15c807b00e?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTJ8fGRpZ2l0YWwlMjBjYW1lcmF8ZW58MHx8MHx8fDA%3D'
+        },
+      ];
+
+      $scope.cart = [];
+
+      // Add product to the cart
+      $scope.addToCart = function(product) {
+        let found = false;
+        // Check if product already exists in the cart
+        $scope.cart.forEach(function(item) {
+          if (item.id === product.id) {
+            item.quantity++;
+            found = true;
+          }
+        });
+        if (!found) {
+          $scope.cart.push({ ...product, quantity: 1 });
+        }
+        product.availableQuantity--; // Decrease available quantity
+      };
+
+      // Remove product from the cart
+      $scope.removeFromCart = function(item) {
+        let index = $scope.cart.indexOf(item);
+        if (index !== -1) {
+          // Return the quantity to available quantity
+          $scope.products.forEach(function(product) {
+            if (product.id === item.id) {
+              product.availableQuantity += item.quantity;
+            }
+          });
+          $scope.cart.splice(index, 1);
+        }
+      };
+
+      // Calculate total price of the cart
+      $scope.getTotalPrice = function() {
+        return $scope.cart.reduce(function(total, item) {
+          return total + (item.price * item.quantity);
+        }, 0);
+      };
+    });
+  </script>
+</body>
+</html>
